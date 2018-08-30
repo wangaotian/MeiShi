@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>员工成员</title>
+    <link rel="stylesheet" href="/css/bootstrap.css">
+    <link rel="stylesheet" href="/css/font-awesome.css">
+    <script src="/js/jquery-1.12.3.min.js"></script>
+    <script src="/js/bootstrap.min.js"></script>
+
+    <style>
+         .active{
+             background: aquamarine;;
+         }
+        #tbody img{
+            width: 50px;
+            height: 50px;
+        }
+    </style>
+</head>
+<body>
+<div class="odiv" style="width: 85%;margin: 20px auto">
+    <div class="col-sm-3 col-md-2 sidebar">
+        <ul class="nav nav-sidebar">
+            <li><a href="#">商品管理</a></li>
+            <li><a href="/">商品分类</a></li>
+            <li class="active"><a href="/menu">商品列表</a></li>
+            <li><a href="/addM">增加商品</a></li>
+        </ul>
+
+    </div>
+    <div class="col-sm-9 col-md-9 sidebar">
+        <select id="sel">
+            请选择分类
+        </select>
+        <input type="text" id="mohu">
+        <div class="modal fade" id="bianji" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true" >&times;</span></button>
+                        <h4 class="modal-title" id="myModalLabel">编辑员工 </h4>
+                    </div>
+                    <div class="modal-body">
+                        <div style="width: 70%;" class="editDiv">
+
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                        <button type="button" class="btn btn-primary update" >确定</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <table class="table table-bordered" style="text-align: center">
+            <thead>
+            <tr>
+                <td>标题</td>
+                <td>分类</td>
+                <td>价格</td>
+                <td>推荐</td>
+                <td>热销</td>
+                <td>状态</td>
+                <td>操纵</td>
+
+            </tr>
+            </thead>
+            <tbody id="tbody"></tbody>
+        </table>
+        <br>
+    </div>
+</div>
+<script>
+    $.get("/fenlei",function (data) {
+        $.each(data.result,function (err,n) {
+            $op = $("<option></option>").html(n.leibie);
+            $op.appendTo($("#sel"));
+        })
+    })
+    $("#sel").change(function () {
+        $("#tbody").html('')
+        var sel=$('#sel option:checked').val()
+        console.log(sel)
+        $.get("/menulist",function (data) {
+            $.each(data.result,function (err,n) {
+                if(n.leibie==sel){
+                $tr = $("<tr></tr>");
+                $("<td></td>").html(n.dishes+'<br><img src="'+n.fengmian+'.jpg" alt="">').appendTo($tr);
+                $("<td></td>").html(n.leibie).appendTo($tr);
+                $("<td></td>").html(n.price).appendTo($tr);
+                $("<td></td>").html(n.recommend).appendTo($tr);
+                $("<td></td>").html(n.hot).appendTo($tr);
+                $("<td></td>").html(n.state).appendTo($tr);
+                $("<td></td>").html('<input type="button" data-id="'+n._id+'" name="botton" class="button edit abtn" data-toggle="modal" data-target="#bianji" value="修改">   <input type="button" data-id="'+n._id+'" name="radio" class="remove" value="删除">').appendTo($tr);
+                //上树
+                $tr.appendTo($("#tbody"));
+                }
+            })
+        })
+    })
+    $.get("/menulist",function (data) {
+        $.each(data.result,function (err,n) {
+            if(n.recommend=='精品'){
+                var x='√'
+            }
+            if(n.recommend==undefined){
+                    var x='×'
+                }
+            if(n.hot=='热销'){
+                var y='√'
+            }
+            if(n.hot==undefined){
+                var y='×'
+            }
+            $tr = $("<tr></tr>");
+            $("<td></td>").html(n.dishes+'<br><img src="'+n.fengmian+'.jpg" alt="">').appendTo($tr);
+            $("<td></td>").html(n.leibie).appendTo($tr);
+            $("<td></td>").html(n.price).appendTo($tr);
+            $("<td></td>").html(x).appendTo($tr);
+            $("<td></td>").html(y).appendTo($tr);
+            $("<td></td>").html('√').appendTo($tr);
+            $("<td></td>").html('<input type="button" data-id="'+n._id+'" name="botton" class="button edit abtn" data-toggle="modal" data-target="#bianji" value="修改">   <input type="button" data-id="'+n._id+'" name="radio" class="remove" value="删除">').appendTo($tr);
+            //上树
+            $tr.appendTo($("#tbody"));
+        })
+    })
+    $("#tbody").delegate('.remove','click',function () {
+        console.log($(this).attr("data-id"))
+        var sid=$(this).attr("data-id");
+        $.ajax({
+            url : "/deleteM/" + sid,
+            type : "delete",
+            success : function(data){
+                if(data.s == 1){
+                    alert("删除成功");
+                    window.location.href="/menu"
+                }else{
+                    alert("服务器错误！");
+                }
+            }
+        });
+    })
+
+
+    $("#tbody").delegate('.button','click',function () {
+        $('.editDiv').html('')
+        var id=$(this).attr("data-id");
+        console.log(id)
+        $.ajax({
+            url : "/MDetailed/" + id,
+            type : "get",
+            success : function(data){
+                if(data.s == -1){
+                    alert("服务器错误");
+                }else{
+                    $('<form></form>').html('<p><span>菜名：</span><input type="text" name="caiming" value="'+data.s.dishes+'" data-id="'+data.s._id+'"></p>' +
+                        '<p><span>类名：</span><input type="text" name="leibie" value="'+data.s.leibie+'" data-id="'+data.s._id+'"></p>'+
+                        '<p><span>价格：</span><input type="text" name="price" value="'+data.s.price+'" data-id="'+data.s._id+'"></p>'+
+                        '<p><span>内容：</span><textarea>'+data.s.miaoshu+'</textarea></p>'+
+                        '<p><span>精品：<input type="checkbox" name="jingpin" value="精品"></span>' +
+                        '<span>热销：<input type="checkbox" name="rexiao" value="热销"></span></p>'
+                    ).appendTo($('.editDiv'))
+
+                }
+            }
+        });
+    })
+    $('.update').click(function () {
+        var id=$(".editDiv input[name=caiming]").attr("data-id");
+        console.log(id)
+        $.post('/updateAddM/'+id,{
+            "dishes":$(".editDiv input[name=caiming]").val(),
+            "leibie":$(".editDiv input[name=leibie]").val(),
+            "price":$(".editDiv input[name=price]").val(),
+            "miaoshu":$(".editDiv textarea").val(),
+            "recommend":$(".editDiv input[name=jingpin]:checked").val(),
+            "hot":$(".editDiv input[name=rexiao]:checked").val(),
+
+        },function (data) {
+            if (data.s==1){
+                alert('成功')
+                window.location.href="/menu"
+                $('input[type=text]').val(' ')
+            }
+            if (data.s==-1){
+                alert("服务器错误")
+            }
+        })
+    })
+    $("#mohu").on("input",function(){
+        $("#tbody").html('')
+        var val=$(this).val()
+        console.log(val)
+        $.get("/menulist",function (data) {
+            $.each(data.result,function (err,n) {
+                if(n.leibie==val||n.price==val||n.dishes==val) {
+                    if (n.recommend == '精品') {
+                        var x = '√'
+                    }
+                    if (n.recommend == undefined) {
+                        var x = '×'
+                    }
+                    if (n.hot == '热销') {
+                        var y = '√'
+                    }
+                    if (n.hot == undefined) {
+                        var y = '×'
+                    }
+                    $tr = $("<tr></tr>");
+                    $("<td></td>").html(n.dishes + '<br><img src="' + n.fengmian + '.jpg" alt="">').appendTo($tr);
+                    $("<td></td>").html(n.leibie).appendTo($tr);
+                    $("<td></td>").html(n.price).appendTo($tr);
+                    $("<td></td>").html(x).appendTo($tr);
+                    $("<td></td>").html(y).appendTo($tr);
+                    $("<td></td>").html('√').appendTo($tr);
+                    $("<td></td>").html('<input type="button" data-id="' + n._id + '" name="botton" class="button edit abtn" data-toggle="modal" data-target="#bianji" value="修改">   <input type="button" data-id="' + n._id + '" name="radio" class="remove" value="删除">').appendTo($tr);
+                    //上树
+                    $tr.appendTo($("#tbody"));
+                }
+                else if(val==''){
+                    if (n.recommend == '精品') {
+                        var x = '√'
+                    }
+                    if (n.recommend == undefined) {
+                        var x = '×'
+                    }
+                    if (n.hot == '热销') {
+                        var y = '√'
+                    }
+                    if (n.hot == undefined) {
+                        var y = '×'
+                    }
+                    $tr = $("<tr></tr>");
+                    $("<td></td>").html(n.dishes + '<br><img src="' + n.fengmian + '.jpg" alt="">').appendTo($tr);
+                    $("<td></td>").html(n.leibie).appendTo($tr);
+                    $("<td></td>").html(n.price).appendTo($tr);
+                    $("<td></td>").html(x).appendTo($tr);
+                    $("<td></td>").html(y).appendTo($tr);
+                    $("<td></td>").html('√').appendTo($tr);
+                    $("<td></td>").html('<input type="button" data-id="' + n._id + '" name="botton" class="button edit abtn" data-toggle="modal" data-target="#bianji" value="修改">   <input type="button" data-id="' + n._id + '" name="radio" class="remove" value="删除">').appendTo($tr);
+                    //上树
+                    $tr.appendTo($("#tbody"));
+                }
+            })
+        })
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>员工成员</title>
+    <link rel="stylesheet" href="/css/bootstrap.css">
+    <link rel="stylesheet" href="/css/font-awesome.css">
+    <script src="/js/jquery-1.12.3.min.js"></script>
+    <script src="/js/bootstrap.min.js"></script>
+
+    <style>
+        .active{
+            background: aquamarine;;
+        }
+    </style>
+</head>
+<body>
+<div class="odiv" style="width: 85%;margin: 20px auto">
+    <div class="col-sm-3 col-md-2 sidebar">
+        <ul class="nav nav-sidebar">
+            <li><a href="#">商品管理</a></li>
+            <li class="active"><a href="/">商品分类</a></li>
+            <li><a href="/menu">商品列表</a></li>
+            <li><a href="/addM">增加商品</a></li>
+        </ul>
+
+    </div>
+    <div class="col-sm-9 col-md-9 sidebar">
+    <button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#chuangjian">
+        增加分类
+    </button>
+    <div class="modal fade" id="chuangjian" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="myModalLabel" disabled="false">增加分类</h4>
+                </div>
+                <div class="modal-body">
+                    <div style="width: 70%;">
+                        <form >
+                            <p>
+                                <span>类名：</span>
+                                <input type="text" name="leibie">
+                            </p>
+
+                        </form>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" id="Addbtn">提交</button>
+                </div>
+            </div>
+        </div>
+    </div>
+        <div class="modal fade" id="bianji" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true" >&times;</span></button>
+                        <h4 class="modal-title" id="myModalLabel">编辑员工 </h4>
+                    </div>
+                    <div class="modal-body">
+                        <div style="width: 70%;" class="editDiv">
+
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                        <button type="button" class="btn btn-primary update" >确定</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    <table class="table table-bordered" style="text-align: center">
+        <thead>
+        <tr>
+            <td>分类名称</td>
+            <td>状态</td>
+            <td>操纵</td>
+
+        </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+    </table>
+    <br>
+    </div>
+</div>
+<script>
+    $.get("/fenlei",function (data) {
+        $.each(data.result,function (err,n) {
+            $tr = $("<tr></tr>");
+            $("<td></td>").html(n.leibie).appendTo($tr);
+            $("<td></td>").html('√').appendTo($tr);
+            $("<td></td>").html('<input type="button" data-id="'+n._id+'" name="botton" class="button edit abtn" data-toggle="modal" data-target="#bianji" value="修改">   <input type="button" data-id="'+n._id+'" name="radio" class="remove" value="删除">').appendTo($tr);
+            //上树
+            $tr.appendTo($("#tbody"));
+        })
+    })
+
+    $('#Addbtn').click(function () {
+        $.post('/add',{
+            "leibie":$("input[name=leibie]").val(),
+        },function (data) {
+            if (data.s==1){
+                alert('成功')
+                window.location.href="/"
+                $('input[type=text]').val(' ')
+            }
+            if (data.s==-1){
+                alert("服务器错误")
+            }
+            if (data.s==-2){
+                alert("用户名已存在")
+                $('input[type=text]').val(' ')
+            }
+        })
+    })
+    $("#tbody").delegate('.remove','click',function () {
+        console.log($(this).attr("data-id"))
+        var sid=$(this).attr("data-id");
+        $.ajax({
+            url : "/delete/" + sid,
+            type : "delete",
+            success : function(data){
+                if(data.s == 1){
+                    alert("删除成功");
+                    window.location.href="/"
+                }else{
+                    alert("服务器错误！");
+                }
+            }
+        });
+    })
+
+
+    $("#tbody").delegate('.button','click',function () {
+        $('.editDiv').html('')
+        var id=$(this).attr("data-id");
+        $.ajax({
+            url : "/workDetailed/" + id,
+            type : "get",
+            success : function(data){
+                if(data.s == -1){
+                    alert("服务器错误");
+                }else{
+                    $('<form></form>').html('<p><span>类名：</span><input type="text" name="leiming" value="'+data.s.leibie+'" data-id="'+data.s._id+'"></p>').appendTo($('.editDiv'))
+
+                }
+            }
+        });
+    })
+    $('.update').click(function () {
+        var id=$(".editDiv input[name=leiming]").attr("data-id");
+        console.log(id)
+        $.post('/updateAdd/'+id,{
+            "leibie":$(".editDiv input[name=leiming]").val(),
+
+        },function (data) {
+            if (data.s==1){
+                alert('成功')
+                window.location.href="/"
+                $('input[type=text]').val(' ')
+            }
+            if (data.s==-1){
+                alert("服务器错误")
+            }
+        })
+    })
+
+</script>
+</body>
+</html>

@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>员工成员</title>
+    <link rel="stylesheet" href="/css/bootstrap.css">
+    <link rel="stylesheet" href="/css/font-awesome.css">
+    <script src="/js/jquery-1.12.3.min.js"></script>
+    <script src="/js/bootstrap.min.js"></script>
+
+    <style>
+        .active{
+            background: aquamarine;;
+        }
+    </style>
+</head>
+<body>
+<div class="odiv" style="width: 85%;margin: 20px auto">
+    <div class="col-sm-3 col-md-2 sidebar">
+        <ul class="nav nav-sidebar">
+            <li><a href="#">商品管理</a></li>
+            <li><a href="/">商品分类</a></li>
+            <li><a href="/menu">商品列表</a></li>
+            <li class="active"><a href="addM">增加商品</a></li>
+        </ul>
+
+    </div>
+    <div class="col-sm-9 col-md-9 sidebar">
+        <form action="/addmenu" method="post" enctype="multipart/form-data">
+            <p>
+                所属分类：<br>
+                <select name="fenlei" id="select"></select>
+                <!--<input type="text" class="tai" name="zhuangtai"">-->
+            </p>
+            <p>
+                商品名称：<br>
+                <input type="text" name="mingcheng">
+            </p>
+            <p>
+                商品价格：<br>
+                <input type="text" name="jiage">
+            </p>
+            <p>
+                商品排序：<br>
+                <input type="text" name="paixu" readonly>
+            </p>
+            <!--<form method="post" action="/addAmg" enctype="multipart/form-data">-->
+            <!--<input type="file" id="fengmian" name="fengmian">-->
+            <!--<input type="submit" id="tijiaotupian" value="提交"/>-->
+            <!--</form>-->
+            <p>
+                封面图：
+                <input type="file" id="fengmian" name="fengmian">
+            </p>
+            <p>
+                商品描述：<br>
+                <textarea name="miaoshu" id="textarea" cols="30" rows="6"></textarea>
+            </p>
+            <p>
+                <input type="checkbox" name="jingpin" value="精品">精品
+                <input type="checkbox" name="rexiao" value="热销">热销
+            </p>
+            <p>
+                <button type="submit" id="Abtn" style="background: #0a6999;color: #fff">提交</button>
+            </p>
+
+        </form>
+    </div>
+</div>
+<script>
+    $.get("/fenlei",function (data) {
+        $.each(data.result,function (err,n) {
+            $op = $("<option></option>").html(n.leibie);
+            $op.appendTo($("#select"));
+        })
+    })
+    console.log($('textarea[name=miaoshu]').val())
+    $.get("/menulist", function (data) {
+        $('input[name=paixu]').val(data.result.length+1)
+    })
+
+</script>
+</body>
+</html>
